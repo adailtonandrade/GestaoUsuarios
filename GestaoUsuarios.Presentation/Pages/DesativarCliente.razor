@@ -1,0 +1,53 @@
+﻿@page "/desativar-cliente/{id:int}"
+@using GestaoUsuarios.Presentation.Models
+@using GestaoUsuarios.Domain.Enum
+@using GestaoUsuarios.Domain.Util
+@using GestaoUsuarios.Presentation.Repository
+@inject IClienteRepository ClienteRepository
+@inject NavigationManager NavigationManager
+
+
+
+<h4>Você tem certeza que deseja desativar o Cliente @Cliente.Nome?</h4>
+
+
+<EditForm Model="Cliente" OnSubmit="HandleSubmit">
+    <div class="form-group col-md-6">
+        <label for="nomeCliente">Nome do Cliente</label>
+        <InputText id="nomeCliente" @bind-Value="Cliente.Nome" class="form-control" disabled="disabled" />
+    </div>
+    <div class="form-group col-md-6 mt-3">
+        <label for="porteEmpresa">Porte da Empresa</label>
+        <InputSelect @bind-Value="@Cliente.PorteEmpresa" class="form-control" disabled="disabled">
+            @foreach (var porteEmpresa in Enum.GetValues(typeof(PorteEmpresaEnum)))
+            {
+                <option value="@((int)@porteEmpresa)">@EnumExtensions.ObterDescricaoDoEnum(porteEmpresa)</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-danger mt-4">Confirmar Exclusão</button>
+</EditForm>
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    public ClienteModel Cliente { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is not null)
+        {
+            var cliente = await ClienteRepository.ObterClientePorIdAsync(Id.Value);
+            if (cliente != null)
+                Cliente = cliente;
+        }
+    }
+
+    async Task HandleSubmit()
+    {
+        if (Id is not null)
+        {
+            if (await ClienteRepository.DesativarClienteByIdAsync(Id.Value))
+                NavigationManager.NavigateTo("/clientes");
+        }
+    }
+}

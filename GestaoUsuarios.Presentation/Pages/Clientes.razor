@@ -1,0 +1,70 @@
+﻿@page "/clientes"
+@using GestaoUsuarios.Application.Clientes.Response
+@using GestaoUsuarios.Presentation.Repository
+@attribute [StreamRendering]
+@inject IClienteRepository ClienteRepository
+@inject NavigationManager NavigationManager
+<PageTitle>Clientes</PageTitle>
+
+<h1>Clientes</h1>
+
+<p>Lista de Clientes.</p>
+<button class="btn btn-primary" @onclick="AdicionarCliente">Adicionar novo Cliente</button>
+@if (clientes == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Porte da Empresa</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in clientes)
+            {
+                <tr>
+                    <td>@cliente.Id</td>
+                    <td>@cliente.Nome</td>
+                    <td>@cliente.PorteEmpresa</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => EditarCliente(@cliente.Id))">Editar</button>
+                        <button class="btn btn-danger" @onclick="@(() => DesativarCliente(@cliente.Id))">Desativar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<ClienteResponse>? clientes = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientes = await ClienteRepository.ObterClientesAsync();
+    }
+    void AdicionarCliente()
+    {
+        NavigationManager.NavigateTo("adicionar-cliente");
+    }
+    void EditarCliente(int id)
+    {
+        NavigationManager.NavigateTo($"adicionar-cliente/{id}");
+    }
+    void DesativarCliente(int id)
+    {
+        NavigationManager.NavigateTo($"desativar-cliente/{id}");
+    }
+    private class Cliente
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string PorteEmpresa { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,67 @@
+﻿@page "/adicionar-cliente"
+@page "/adicionar-cliente/{id:int}"
+@using GestaoUsuarios.Domain.Enum
+@using GestaoUsuarios.Domain.Util
+@using GestaoUsuarios.Presentation.Models
+@using GestaoUsuarios.Presentation.Repository
+@inject IClienteRepository ClienteRepository
+@inject NavigationManager NavigationManager
+
+@if (Id == null)
+{
+    <h3>Adicionar Cliente</h3>
+}
+else
+{
+    <h3>Editar @Cliente.Nome</h3>
+}
+
+<EditForm Model="Cliente" OnSubmit="HandleSubmit">
+    <div class="form-group col-md-6">
+        <label for="nomeCliente">Nome do Cliente</label>
+        <InputText id="nomeCliente" @bind-Value="Cliente.Nome" class="form-control" />
+    </div>
+    <div class="form-group col-md-6 mt-3">
+        <label for="porteEmpresa">Porte da Empresa</label>
+        <InputSelect @bind-Value="@Cliente.PorteEmpresa" class="form-control">
+            @foreach (var porteEmpresa in Enum.GetValues(typeof(PorteEmpresaEnum)))
+            {
+                <option value="@((int)@porteEmpresa)">@EnumExtensions.ObterDescricaoDoEnum(porteEmpresa)</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-primary mt-4">Salvar</button>
+</EditForm>
+
+
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    public ClienteModel Cliente { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is not null)
+        {
+            var cliente = await ClienteRepository.ObterClientePorIdAsync(Id.Value);
+            if (cliente != null)
+                Cliente = cliente;
+        }
+    }
+
+    async Task HandleSubmit()
+    {
+        if (Id is not null)
+        {
+            Cliente.Id = Id.Value;
+            if (await ClienteRepository.AtualizarClienteAsync(Cliente))
+                NavigationManager.NavigateTo("/clientes");
+        }
+        else
+        {
+            if (await ClienteRepository.CadastrarClienteAsync(Cliente))
+                NavigationManager.NavigateTo("/clientes");
+        }
+    }
+}

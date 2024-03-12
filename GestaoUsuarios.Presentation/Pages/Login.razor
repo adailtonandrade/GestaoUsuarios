@@ -1,0 +1,53 @@
+﻿@page "/login"
+@using GestaoUsuarios.Presentation.Models
+@using GestaoUsuarios.Presentation.Services;
+@inject IAuthenticationService AuthenticationService;
+
+
+<fieldset disabled="@(expiration is not null)">
+    <EditForm Model="@model" OnValidSubmit="SubmitAsync">
+        <div class="form-group col-md-6">
+            <label for="nomeUsuario">Nome de Usuário:</label>
+            <InputText @bind-Value="@model.NomeUsuario" id="nomeUsuario" name="nomeUsuario" required class="form-control" />
+        </div>
+        <div class="form-group col-md-6 mt-3">
+            <label for="senha">Senha:</label>
+            <InputText type="password" @bind-Value="@model.Senha" id="senha" name="senha" required class="form-control" />
+        </div>
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    </EditForm>
+</fieldset>
+
+@if(expiration is not null)
+{
+    <p>Você estará logado até @expiration?.ToLongTimeString()</p>
+}
+
+@if (mensagemErro is not null)
+{
+    <p class="error">@mensagemErro</p>
+}
+
+@code {
+    private LoginModel model = new LoginModel();
+    private DateTime? expiration;
+    private string? mensagemErro;
+
+    private async Task SubmitAsync()
+    {
+        try
+        {
+            expiration = await AuthenticationService.LoginAsync(model);
+
+            mensagemErro = null;
+        }
+        catch (Exception ex)
+        {
+            expiration = null;
+
+            mensagemErro = ex.Message;
+        }
+    }
+}
